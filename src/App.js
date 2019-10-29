@@ -1,26 +1,28 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, {useState} from 'react';
+import {Route, withRouter} from 'react-router-dom';
+import NavBar from './NavBar/NavBar';
+// import Task from './Task/Task';
+import Tasks from './Tasks/Tasks';
+import NewTask from './NewTask/NewTask';
+import Login from './Login/Login';
 
-function App() {
+function App(props) {
+  const [sortField, setSortField] = useState();
+  const [sortDirection, setSortDirection] = useState();
+
+  const handleSorting = (field, direction) => {
+    setSortField(field);
+    setSortDirection(direction);
+  }
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <NavBar handleSorting={handleSorting}/>
+      <Route exact path='/' render={() => <Tasks sortField={sortField} sortDirection={sortDirection} />}/>
+      <Route path='/new-task' component={NewTask} />
+      <Route exact path='/login' component={Login}/>
     </div>
   );
 }
 
-export default App;
+export default withRouter(App);
