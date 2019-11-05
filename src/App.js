@@ -1,12 +1,67 @@
 import React, {useState} from 'react';
 import {Route, withRouter} from 'react-router-dom';
-import NavBar from './NavBar/NavBar';
+import NavBar from './Components/NavBar';
 // import Task from './Task/Task';
-import Tasks from './Tasks/Tasks';
-import NewTask from './NewTask/NewTask';
-import Login from './Login/Login';
+import Tasks from './Components/Tasks';
+import NewTask from './Components/NewTask';
+import Task from './Components/Task';
+import Login from './Components/Login';
+import Alert from './Components/Alert';
+import AuthContext, {DevContext} from './Components/Contexts'
+import SecuredRoute from './Components/SecuredRoute';
+import {readCookie, createCookie, eraseCookie} from './utils/utils';
 
-function App(props) {
+const bc = new BroadcastChannel('beejee test app');
+
+const initialState = {
+  isAuthenticated: false,
+  user: null,
+  token: null,
+};
+
+const init = (initialState) => {
+  const user = readCookie('user');
+  const token = readCookie('token');
+
+  return {
+    ...initialState,
+    isAuthenticated: user && token,
+    user: user,
+    token: token
+  };
+}
+
+const reducer = (state, action) => {
+  switch (action.type) {
+    case "LOGIN":
+      createCookie('user', action.user, 86400);
+      createCookie('token', action.token, 86400);
+      return {
+        ...state,
+        isAuthenticated: true,
+        user: action.user,
+        token: action.token
+      };
+    case "LOGOUT":
+      if (readCookie('token')) {
+        bc.postMessage('LOGOUT');
+      }
+      eraseCookie('user');
+      eraseCookie('token');
+      return {
+        ...state,
+        isAuthenticated: false,
+        user: null,
+        token: null
+      };
+    default:
+      return state;
+  }
+};
+
+const App = (props) => {
+  const [authState, authDispatch] = React.useReducer(reducer, initialState, init);
+
   const [sortField, setSortField] = useState();
   const [sortDirection, setSortDirection] = useState();
 
@@ -15,13 +70,28 @@ function App(props) {
     setSortDirection(direction);
   }
 
+  bc.onmessage = (event) => { 
+    if (event.data === 'LOGOUT') {
+      authDispatch({ type: 'LOGOUT' });
+    }
+  }
+
   return (
-    <div>
-      <NavBar handleSorting={handleSorting}/>
-      <Route exact path='/' render={() => <Tasks sortField={sortField} sortDirection={sortDirection} />}/>
-      <Route path='/new-task' component={NewTask} />
-      <Route exact path='/login' component={Login}/>
-    </div>
+    <DevContext.Provider value={{developer: 'ptash4'}}>
+      <AuthContext.Provider value={{ authState, authDispatch }}>
+        <div>
+          <NavBar handleSorting={handleSorting}/>
+          {
+            props.location.state && props.location.state.alertMsg &&
+            <Alert message={props.location.state.alertMsg} type={props.location.state.alertType}/>
+          }         
+          <Route exact path='/' render={() => <Tasks sortField={sortField} sortDirection={sortDirection} />}/>
+          <Route path='/new-task' component={NewTask} />
+          <Route exact path='/login' component={Login}/>
+          <SecuredRoute path='/task/:taskID' component={Task} />
+        </div>
+      </AuthContext.Provider>
+    </DevContext.Provider>
   );
 }
 

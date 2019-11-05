@@ -1,26 +1,29 @@
-import React, {useState} from 'react';
+import React, {useState, useContext} from 'react';
 import {withRouter} from 'react-router-dom';
 import axios from 'axios';
+import {DevContext} from './Contexts'
 
-function NewQuestion(props) {
+const NewTask = (props) => {
+  const {developer} = useContext(DevContext);
   const [disabled, setDisabled] = useState(false);
   const [userName, setUserName] = useState('');
   const [email, setEmail] = useState('');
   const [description, setDescription] = useState('');
+  const [alertState, setAlert] = useState('');
 
   const submit = async () => {
     function validateEmail(email) {
-      var re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+      var re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
       return re.test(email);
     }
 
     if (!userName || !email || !description) {
-      alert('Необходимо заполнить все поля!');
+      setAlert('Необходимо заполнить все поля!');
       return;
     }
 
     if (!validateEmail(email)) {
-      alert('email не валиден');
+      setAlert('email не валиден');
       return;
     }
 
@@ -29,17 +32,19 @@ function NewQuestion(props) {
     const bodyFormData = new FormData();
     bodyFormData.set('username', userName);
     bodyFormData.set('email', email);
-    bodyFormData.set('text', description);
+    bodyFormData.set('text', JSON.stringify({original: description}));
 
-    const createdTask = (await axios.post('https://uxcandy.com/~shapoval/test-task-backend/v2/create?developer=ptash', bodyFormData, {
+    const createdTask = (await axios.post(`https://uxcandy.com/~shapoval/test-task-backend/v2/create?developer=${developer}`, bodyFormData, {
       headers: {'Content-Type': 'multipart/form-data' }
     })).data;
 
     if (createdTask.status === 'ok') {
-      alert('Задача была успешно создана!');
-      props.history.push('/');
+      props.history.push({
+        pathname: '/',
+        state: { alertMsg: 'Задача была успешно создана!', alertType: 'alert-success' }
+      });
     } else {
-      alert('Задача не была создана!');
+      setAlert('Задача не была создана!');
       setDisabled(false);
     }
   }
@@ -52,17 +57,17 @@ function NewQuestion(props) {
             <div className="card-header">Новая Задача</div>
             <div className="card-body text-left">
               <div className="form-group">
-                <label htmlFor="exampleInputEmail1">Имя пользователя:</label>
+                <label>Имя пользователя:</label>
                 <input
                   disabled={disabled}
                   type="text"
                   onBlur={(e) => {setUserName(e.target.value)}}
                   className="form-control"
-                  placeholder="Введите имя пользоватея"
+                  placeholder="Введите имя пользователя"
                 />
               </div>
               <div className="form-group">
-                <label htmlFor="exampleInputEmail1">e-mail:</label>
+                <label>e-mail:</label>
                 <input
                   disabled={disabled}
                   type="email"
@@ -72,15 +77,19 @@ function NewQuestion(props) {
                 />
               </div>
               <div className="form-group">
-                <label htmlFor="exampleInputEmail1">Текст задачи:</label>
+                <label>Текст задачи:</label>
                 <input
                   disabled={disabled}
                   type="text"
                   onBlur={(e) => {setDescription(e.target.value)}}
                   className="form-control"
-                  placeholder="Введи текст задачи"
+                  placeholder="Введите текст задачи"
                 />
               </div>
+              {
+                alertState &&
+                <div className="alert alert-danger" role="alert">{alertState}</div>              
+              }
               <button
                 disabled={disabled}
                 className="btn btn-primary"
@@ -95,4 +104,4 @@ function NewQuestion(props) {
   )
 }
 
-export default withRouter(NewQuestion);
+export default withRouter(NewTask);

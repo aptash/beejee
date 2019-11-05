@@ -1,15 +1,24 @@
-import React, {useState} from 'react';
+import React, {useState, useContext} from 'react';
 import {withRouter} from 'react-router-dom';
 import axios from 'axios';
+import AuthContext, {DevContext} from './Contexts'
 
-function Login(props) {
+const Login = (props) => {
+  const {authState, authDispatch} = useContext(AuthContext);
+  const {developer} = useContext(DevContext);
+
+  if (authState.isAuthenticated) {
+    props.history.push('/');
+  }
+
   const [disabled, setDisabled] = useState(false);
   const [userName, setUserName] = useState('');
   const [password, setPassword] = useState('');
+  const [alertState, setAlert] = useState('');
 
   const submit = async () => {
     if (!userName || !password) {
-      alert('Все поля обязательны для заполнения!');
+      setAlert('Все поля обязательны для заполнения!');
       return;
     }
 
@@ -19,18 +28,15 @@ function Login(props) {
     bodyFormData.set('username', userName);
     bodyFormData.set('password', password);
 
-    const login = (await axios.post('https://uxcandy.com/~shapoval/test-task-backend/v2/login?developer=ptash', bodyFormData, {
+    const login = (await axios.post(`https://uxcandy.com/~shapoval/test-task-backend/v2/login?developer=${developer}`, bodyFormData, {
       headers: {'Content-Type': 'multipart/form-data' }
     })).data;
 
     if (login.status === 'ok') {
-      alert('Успешная авторизация!');
-      const date = new Date();
-      date.setTime(date.getTime()+(24*60*60*1000));  
-      document.cookie = `token=${login.message.token};expires=${date.toGMTString()}`;
+      authDispatch({ type: 'LOGIN', user: userName, token: login.message.token });
       props.history.push('/');
     } else {
-      alert('Неправильные реквизиты доступа!');
+      setAlert('Неправильные реквизиты доступа!');
       setDisabled(false);
     }
   }
@@ -43,17 +49,17 @@ function Login(props) {
             <div className="card-header">Авторизация</div>
             <div className="card-body text-left">
               <div className="form-group">
-                <label htmlFor="exampleInputEmail1">Имя пользователя:</label>
+                <label>Имя пользователя:</label>
                 <input
                   disabled={disabled}
                   type="text"
                   onBlur={(e) => {setUserName(e.target.value)}}
                   className="form-control"
-                  placeholder="Введите имя пользоватея"
+                  placeholder="Введите имя пользователя"
                 />
               </div>
               <div className="form-group">
-                <label htmlFor="exampleInputEmail1">Пароль:</label>
+                <label>Пароль:</label>
                 <input
                   disabled={disabled}
                   type="password"
@@ -62,6 +68,10 @@ function Login(props) {
                   placeholder="Введите пароль"
                 />
               </div>
+              {
+                alertState &&
+                <div className="alert alert-danger" role="alert">{alertState}</div>              
+              }
               <button
                 disabled={disabled}
                 className="btn btn-primary"
