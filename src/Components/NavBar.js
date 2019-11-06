@@ -2,7 +2,7 @@ import React, {useContext} from 'react';
 import {Link, withRouter} from 'react-router-dom';
 import AuthContext from './Contexts'
 
-const NavBar = ({handleSorting, history}) => {
+const NavBar = ({handleSorting, history, location}) => {
   const { authState, authDispatch } = useContext(AuthContext);
 
   return (
@@ -13,26 +13,29 @@ const NavBar = ({handleSorting, history}) => {
       <button className="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
         <span className="navbar-toggler-icon"></span>
       </button>  
-      <div className="collapse navbar-collapse" id="navbarSupportedContent">
+      <div className="collapse navbar-collapse" id="navbarNav">
         <ul className="navbar-nav mr-auto">
           <li className="nav-item active">
             <Link className="nav-link" to="/new-task">+ Новая задача</Link>
           </li>
-          <li className="nav-item dropdown">
-            <button className="btn btn-secondary dropdown-toggle" href="#" id="navbarDropdown" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              Сортировка
-            </button>
-            <div className="dropdown-menu" aria-labelledby="navbarDropdown">
-              <button className="dropdown-item" href="#" onClick={() => handleSorting('username', 'asc')}>По имени ↓</button>
-              <button className="dropdown-item" href="#" onClick={() => handleSorting('username', 'desc')}>По имени ↑</button>
-              <div className="dropdown-divider"></div>
-              <button className="dropdown-item" href="#" onClick={() => handleSorting('email', 'asc')}>По email ↓</button>
-              <button className="dropdown-item" href="#" onClick={() => handleSorting('email', 'desc')}>По email ↑</button>
-              <div className="dropdown-divider"></div>
-              <button className="dropdown-item" href="#" onClick={() => handleSorting('status', 'asc')}>По статусу ↓</button>
-              <button className="dropdown-item" href="#" onClick={() => handleSorting('status', 'desc')}>По статусу ↑</button>
-            </div>
-          </li>          
+          {
+            location.pathname === '/' &&
+            <li className="nav-item dropdown">
+              <button className="btn btn-secondary dropdown-toggle" href="#" id="navbarDropdown" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Сортировка
+              </button>
+              <div className="dropdown-menu" aria-labelledby="navbarDropdown">
+                <button className="dropdown-item" href="#" onClick={() => handleSorting('username', 'asc')}>По имени ↓</button>
+                <button className="dropdown-item" href="#" onClick={() => handleSorting('username', 'desc')}>По имени ↑</button>
+                <div className="dropdown-divider"></div>
+                <button className="dropdown-item" href="#" onClick={() => handleSorting('email', 'asc')}>По email ↓</button>
+                <button className="dropdown-item" href="#" onClick={() => handleSorting('email', 'desc')}>По email ↑</button>
+                <div className="dropdown-divider"></div>
+                <button className="dropdown-item" href="#" onClick={() => handleSorting('status', 'asc')}>По статусу ↓</button>
+                <button className="dropdown-item" href="#" onClick={() => handleSorting('status', 'desc')}>По статусу ↑</button>
+              </div>
+            </li>   
+          }       
         </ul>
       </div>
       {

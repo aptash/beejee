@@ -42,11 +42,13 @@ const Tasks = (props) => {
                   <h4 className="card-title">{description.edited ? description.edited : description.original}</h4>
                   {
                     task.status === 10 &&
-                    <p className="badge badge-primary">Выполнено!</p>
+                    <>
+                      <span className="badge badge-primary">Выполнено!</span><br/>
+                    </>
                   }
                   {
                     description.edited &&
-                    <p className="badge badge-warning">Отредактировано администратором</p>
+                    <span className="badge badge-warning">Отредактировано</span>
                   }
                 </div>
                 {

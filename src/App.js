@@ -11,8 +11,6 @@ import AuthContext, {DevContext} from './Components/Contexts'
 import SecuredRoute from './Components/SecuredRoute';
 import {readCookie, createCookie, eraseCookie} from './utils/utils';
 
-const bc = new BroadcastChannel('beejee test app');
-
 const initialState = {
   isAuthenticated: false,
   user: null,
@@ -36,6 +34,7 @@ const reducer = (state, action) => {
     case "LOGIN":
       createCookie('user', action.user, 86400);
       createCookie('token', action.token, 86400);
+      localStorage.setItem('isAuthenticated', true);
       return {
         ...state,
         isAuthenticated: true,
@@ -43,11 +42,9 @@ const reducer = (state, action) => {
         token: action.token
       };
     case "LOGOUT":
-      if (readCookie('token')) {
-        bc.postMessage('LOGOUT');
-      }
       eraseCookie('user');
       eraseCookie('token');
+      localStorage.removeItem('isAuthenticated');
       return {
         ...state,
         isAuthenticated: false,
@@ -70,11 +67,12 @@ const App = (props) => {
     setSortDirection(direction);
   }
 
-  bc.onmessage = (event) => { 
-    if (event.data === 'LOGOUT') {
-      authDispatch({ type: 'LOGOUT' });
+  window.addEventListener('storage', function({key, newValue}) {  
+      if ((key === 'isAuthenticated') && (!newValue)) {
+        authDispatch({ type: 'LOGOUT' });
+      }
     }
-  }
+  );
 
   return (
     <DevContext.Provider value={{developer: 'ptash4'}}>
