@@ -94,6 +94,10 @@ const NewTask = (props) => {
                 disabled={disabled}
                 className="btn btn-primary"
                 onClick={submit}>
+                {
+                  disabled &&
+                  <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                }
                 Сохранить
               </button>
             </div>

@@ -16,3 +16,7 @@ code {
 .page-link:not(:disabled):not(.disabled) {
   cursor: pointer;
 }
+
+.btn .spinner-border-sm {
+  margin-right: 5px;
+}

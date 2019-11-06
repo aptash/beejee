@@ -4,6 +4,7 @@ import ReactPaginate from 'react-paginate';
 import AuthContext, {DevContext} from './Contexts';
 import {Link} from 'react-router-dom';
 import htmlDecode from '../utils/utils';
+import LoadingOverlay from 'react-loading-overlay';
 
 const Tasks = (props) => {
   const {developer} = useContext(DevContext);
@@ -11,6 +12,7 @@ const Tasks = (props) => {
   const [tasks, setTasks] = useState(null);
   const [pageCount, setPageCount] = useState(1);
   const [currentPage, setCurrentPage] = useState(0);
+  const [isOverlayActive, setOverlayActive] = useState(false);
 
   useEffect(() => {
     const loadTasks = async () => {
@@ -18,19 +20,31 @@ const Tasks = (props) => {
       if (props.sortField && props.sortDirection) {
         sort = `&sort_field=${props.sortField}&sort_direction=${props.sortDirection}`;
       }
+      setOverlayActive(true);
       const loadedTasks = (await axios.get(`https://uxcandy.com/~shapoval/test-task-backend/v2/?developer=${developer}&page=${currentPage+1}${sort}`)).data;
       if (loadedTasks.status === 'ok') {
         setTasks(loadedTasks.message.tasks);  
         setPageCount(Math.ceil(Number(loadedTasks.message.total_task_count)/3));
       }
+      setOverlayActive(false);
     };
     loadTasks();
   }, [currentPage, props.sortField, props.sortDirection, developer]);
 
   return (
-    <div className="container">
+    <LoadingOverlay
+    active={isOverlayActive}
+    spinner
+    text='Загрузка данных...'
+    styles={{
+      wrapper: {
+        width: '100%',
+        height: '100%',
+      }
+    }}    
+    >      
+      <div className="container">
       <div className="row justify-content-center">
-        {tasks === null && <p>Загрузка задач...</p>}
         {
           tasks && tasks.map(task => {
             const description = JSON.parse(htmlDecode(task.text));
@@ -43,7 +57,7 @@ const Tasks = (props) => {
                   {
                     task.status === 10 &&
                     <>
-                      <span className="badge badge-primary">Выполнено!</span><br/>
+                      <span className="badge badge-primary">Выполнено</span><br/>
                     </>
                   }
                   {
@@ -87,6 +101,7 @@ const Tasks = (props) => {
           />
       }
     </div>
+    </LoadingOverlay>
   )
 }
 
